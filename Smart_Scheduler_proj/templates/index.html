@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-4">📊 Dashboard</h2>
+
+
+<div class="row g-4 mb-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm p-3 text-center">
+      <h6 class="text-muted">Total Tasks</h6>
+      <h3 class="fw-bold">{{ tasks|length }}</h3>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm p-3 text-center">
+      <h6 class="text-muted">High Priority</h6>
+      <h3 class="fw-bold text-danger">{{ tasks|selectattr("priority", "equalto", 3)|list|length }}</h3>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm p-3 text-center">
+      <h6 class="text-muted">Due Soon</h6>
+      <h3 class="fw-bold text-warning">
+        {{ tasks|selectattr("deadline")|list|length }}
+      </h3>
+    </div>
+  </div>
+</div>
+
+
+<div class="card shadow-sm p-4 mb-4">
+  <h5 class="mb-3">➕ Add New Task</h5>
+  <form action="{{ url_for('add') }}" method="post" class="row g-3">
+    <div class="col-md-4">
+      <input type="text" class="form-control" name="title" placeholder="Task Title" required>
+    </div>
+    <div class="col-md-2">
+      <input type="number" step="0.25" min="0" class="form-control" name="duration" placeholder="Duration (hrs)" required>
+    </div>
+    <div class="col-md-3">
+      <input type="date" class="form-control" name="deadline" required>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" name="priority" required>
+        <option value="1">Low</option>
+        <option value="2">Medium</option>
+        <option value="3">High</option>
+      </select>
+    </div>
+    <div class="col-md-1">
+      <button class="btn btn-success w-100"><i class="bi bi-check-lg"></i></button>
+    </div>
+  </form>
+</div>
+
+
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <div class="card p-3 shadow-sm h-100">
+      <h6 class="mb-3">Priority Distribution</h6>
+      <canvas id="priorityChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3 shadow-sm h-100">
+      <h6 class="mb-3">Deadlines by Date</h6>
+      <canvas id="deadlineChart"></canvas>
+    </div>
+  </div>
+</div>
+
+
+<div class="card shadow-sm p-4">
+  <h5 class="mb-3">📝 Scheduled Tasks</h5>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Title</th>
+          <th>Duration</th>
+          <th>Deadline</th>
+          <th>Priority</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for task in tasks %}
+        <tr>
+          <td>{{ task.title }}</td>
+          <td>{{ "%.2f"|format(task.duration) }} hrs</td>
+          <td>{{ task.deadline }}</td>
+          <td>
+            {% if task.priority == 3 %}
+              <span class="badge bg-danger">High</span>
+            {% elif task.priority == 2 %}
+              <span class="badge bg-warning text-dark">Medium</span>
+            {% else %}
+              <span class="badge bg-success">Low</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <form action="{{ url_for('delete', id=task.id) }}" method="post">
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="5" class="text-center text-muted">No tasks yet. Add one above!</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const TASKS = {{ tasks | tojson }};
+</script>
+{% endblock %}
+
+
